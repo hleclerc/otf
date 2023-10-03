@@ -5,6 +5,7 @@
 
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
 #include <CGAL/Regular_triangulation_2.h>
+#include "../support/containers/Vec.h"
 #include "PowerDiagramCell.h"
 
 /**
@@ -19,14 +20,12 @@ public:
     using            Vertex             = Rt::Vertex_handle;
     using            Edge               = Rt::Edge;
 
-    void             for_each_edge_point( const std::function<void( const Pt &pt )> &f );
     virtual bool     is_infinite        () const override;
     virtual void     display            ( VtkOutput &vo, TF *offset = nullptr ) override;
     virtual TF       volume             () override;
 
-    Pt               inter_bound        ( const Pt &inter, const Pt &exter ) const;
-    TF               sp_bound           ( const Pt &p, PI n ) const;
-    bool             ext                ( const Pt &p ) const;
+    void             for_each_edge_point( const std::function<void( const Pt &pt )> &f );
+    void             cut                ( Vec<Pt> &pts, Pt dir, TF off ) const;
 
     static TF        sp                 ( const Pt &a, const Pt &b );
     static TF        n2                 ( const Pt &p );

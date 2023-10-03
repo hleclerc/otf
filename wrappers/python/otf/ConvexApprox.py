@@ -43,5 +43,5 @@ class ConvexApprox:
     def _update_weights( self ):
         if self.sv_offsets is None or self.sv_coeffs is None:
             return
-        w2 = self.sv_offsets - np.sum( self.sv_coeffs * self.sv_coeffs, axis = 0 )
-        self.power_diagram.set_weights( w2 / 2 )
+        w = 2 * self.sv_offsets + np.sum( self.sv_coeffs * self.sv_coeffs, axis = 0 )
+        self.power_diagram.set_weights( w )
