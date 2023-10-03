@@ -14,6 +14,9 @@ PowerDiagram_CGAL_2::PowerDiagram_CGAL_2( const TF * const *coords, const TF *we
 
 void PowerDiagram_CGAL_2::for_each_cell( const std::function<void( Cell &, PI )> &f ) {
     PowerDiagramCell_CGAL_2 cell;
+    cell.boundary_coeff_x = &boundary_coeff_x;
+    cell.boundary_coeff_y = &boundary_coeff_y;
+    cell.boundary_offsets = &boundary_offsets;
     cell.rt = &rt;
 
     PI num_cell = 0;

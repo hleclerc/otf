@@ -66,7 +66,7 @@ namespace {
 
                 PowerDiagramFactory_CGAL pf;
                 _pd = pf.create( dim, position_ptrs.ptr(), weights.ptr(), nb_points, boundary_coeff_ptrs.ptr(), boundary_offsets.ptr(), nb_bounds );
-            }
+             }
 
             return _pd.get();
         }
