@@ -16,6 +16,7 @@ void PowerDiagram_CGAL_3::for_each_cell( const std::function<void( Cell &, PI )>
 
     PI num_cell = 0;
     for( auto v = rt.finite_vertices_begin(); v != rt.finite_vertices_end(); ++v ) {
+        cell.weight = v->point().weight();
         cell.num = num_cell++;
         cell.v = v;
 

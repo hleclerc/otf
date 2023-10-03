@@ -34,6 +34,14 @@ TCA Vec<T,-1,-1> Vec<T,-1,-1>::from_values( A &&...values ) {
 }
 
 template<class T>
+TCA Vec<T,-1,-1> Vec<T,-1,-1>::from_size( PI size, A &&...args ) {
+    Vec res = from_reservation( size );
+    for( PI i = 0; i < size; ++i )
+        res.push_back( std::forward<A>( args )... );
+    return res;
+}
+
+template<class T>
 Vec<T,-1,-1> Vec<T,-1,-1>::from_size( PI size ) {
     Vec res;
     res._init_size( size );

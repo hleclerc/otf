@@ -39,7 +39,7 @@ namespace {
             pd = pf.create( dim, nb_points, coords.data(), weights.data() );
         }
 
-        void write_vtk( const String &filename ) {
+        void write_vtk( const String &filename, bool ) {
             VtkOutput vo;
             pd->for_each_cell( [&]( PowerDiagramCell &cell, PI num_thread ) {
                 cell.display( vo );
@@ -56,6 +56,6 @@ PYBIND11_MODULE( pybind_PowerDiagram, m ) {
 
     pybind11::class_<PyPowerDiagram>( m, "PyPowerDiagram" )
         .def( pybind11::init<pybind11::array_t<TF> &, pybind11::array_t<TF> &>(), "" )
-        .def( "write_vtk", &PyPowerDiagram::write_vtk, "" )
+        .def( "write_vtk", &PyPowerDiagram::write_vtk, pybind11::arg( "filename" ), pybind11::arg( "as_convex_function" ) = false, "" )
     ;
 }

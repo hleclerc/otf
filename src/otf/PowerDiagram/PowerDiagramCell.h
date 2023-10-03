@@ -15,6 +15,7 @@ public:
     virtual void display         ( VtkOutput &vo, TF *offset = nullptr ) = 0;
     virtual TF   volume          () = 0;
 
+    TF           weight;         ///<
     PI           num;            ///<
 };
 

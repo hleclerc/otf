@@ -6,6 +6,8 @@ ext/
 build/
 res
 *.pyc
+*.egg
+*.o
 __pycache__
 *.vtk
 *.vtu

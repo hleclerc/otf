@@ -36,8 +36,10 @@ PowerDiagramCell::TF PowerDiagramCell_CGAL_2::volume() {
 
 void PowerDiagramCell_CGAL_2::display( VtkOutput &vo, TF *offset ) {
     Vec<VtkOutput::Pt> pts;
+    Vec<VtkOutput::TF> convex_function;
     for_each_edge_point( [&]( const Pt &pt ) {
+        convex_function << weight - ( pt.x() * pt.x() + pt.y() * pt.y() );
         pts << VtkOutput::Pt{ pt.x(), pt.y() };
     } );
-    vo.add_polygon( pts );
+    vo.add_polygon( pts, { { "convex_function", convex_function } } );
 }

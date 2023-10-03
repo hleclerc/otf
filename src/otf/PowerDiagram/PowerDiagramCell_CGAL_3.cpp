@@ -45,6 +45,7 @@ void PowerDiagramCell_CGAL_3::for_each_face( const std::function<void( const Pt 
 
 bool PowerDiagramCell_CGAL_3::is_infinite() const {
     TODO;
+    return false;
 }
 
 PowerDiagramCell::TF PowerDiagramCell_CGAL_3::volume() {

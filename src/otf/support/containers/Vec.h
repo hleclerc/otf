@@ -22,6 +22,7 @@ public:
     TCU static Vec  from_iterable        ( const U &iterable );
     TCU static Vec  from_function        ( PI size, U &&func );
     TCA static Vec  from_values          ( A &&...values );
+    TCA static Vec  from_size            ( PI size, A &&...args );
     static Vec      from_size            ( PI size );
 
     TCU             Vec                  ( std::initializer_list<U> &&that );

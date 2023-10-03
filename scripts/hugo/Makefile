@@ -7,7 +7,7 @@ OUT = build/tl
 PRG = tests/test_PowerDiagram.cpp
 ARG = 
 
-all:
+all: python_build
 	cd wrappers/python; python tests/test_ConvexApprox.py
 	# ${NSMAKE} exe -o ${OUT} ${PRG}
 	# ${OUT} ${ARG}
