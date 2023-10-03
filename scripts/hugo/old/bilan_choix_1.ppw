@@ -1,0 +1,23 @@
+# Proposition de syntaxe 1: 
+#   on différencie la déclaration et l'attribution en les faisant avec des opérateurs différents
+
+# On peut utiliser `:` comme en json pour dire quel argument on veut spécifier.
+    ma_fonction( foo: 10, bar: 50 )
+
+# Pour définir une nouvelle variable dans un scope, on peut utiliser `:=` 
+    def f( a )
+        b := a + 1 # définition d'une nouvelle variable
+        print b
+
+# Les variantes commençant par `::` sont utilisées pour _déclarer_ des arguments ou des attributs. Exemple:
+    def f( a :: String ) # le premier argument est de type String (ou d'un type qui en hérite)
+
+    # pour les valeurs par défaut, on peut utiliser `~`
+    def f( a ::= 10, b :: String ~ 20 ) # `a` et `b` ont `10` et `20` comme valeurs par défaut. `b` doit être de type String 
+
+    # Ça fonctionne de façon similaire pour les classes
+    class A 
+        a :: PI32 # `a` est un attribut de type PI32
+        b ::~ 10 # `b` est un attribut du même type que `10`, 
+
+#

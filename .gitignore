@@ -1,0 +1,13 @@
+.graph*
+.otf.*
+ext/
+.vscode/
+.qtc_clangd/
+build/
+res
+*.pyc
+__pycache__
+*.vtk
+*.vtu
+octave-workspace
+.directory

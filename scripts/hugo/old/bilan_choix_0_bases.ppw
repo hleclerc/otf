@@ -1,0 +1,283 @@
+# Bases pour les propositions de syntaxe
+
+# Pour diminuer les parenthèses superflues, s'il n'y pas de virgule, les tokens sont ajoutés comme enfant du token précédant. Par exemple
+    ma_fonction foo
+    # est équivalent à
+    ma_fonction{ foo }
+
+# Les virgules permettent de remonter d'un cran dans l'arbre syntaxique
+    ma_fonction foo, 10
+    # est équivalent à
+    ma_fonction{ foo, 10 }
+
+# les tokens au début de ligne ajoutent un enfant au token du début de la première ligne d'indentation inférieure. Exemple :
+    ma_fonction
+        foo # ajouté comme argument de ma_fonction
+        10  # pareil.
+    # C'est équivalent à
+    ma_fonction foo, 10
+
+    # Du coup, tous les `if`, `for`, `def`, etc... deviennent des fonctions normales, sans syntaxe spécifique. Par exemple:
+    if cond
+        print 10
+
+    for a in lst when a > 0 # when est un opérateur
+        print a
+
+    def f a, b # on peut écrire `f( a, b )` si on veut
+        fait_un_truc{}
+
+# `{}` sert à donner une liste d'argument pour construire une valeur
+    # Ça peut servir comme arguments pour des constructeurs
+        def f a: Obj ...
+        f { 1, 2 }
+    # Pb: ça s'applique à l'appel de quelle fonction ?? Dans l'ex + haut, c'est f ou obj ?
+    # La proposition pourrait être d'utiliser le contenu _sur la première fonction qui vient_
+        # Rq: return n'en a pas besoin
+            def f -> Foo 
+                return a, b # on est déjà capable de donner plusieurs arguments
+        #
+
+# ===================================================================================================================================================
+# Pour spécifier à quel argument on fait référence
+    # `:` permet de donner un argument en particulier
+        make_array size: 10, value: "..."
+        a := Vec[ String, size: 1 ] ...
+
+    # On pourrait utiliser `:=` ou `&=` par exemple si on veut de la cohérence avec les classes
+        make_array size := 10, value &= my_ref
+
+    # On pourrait dire que `:` fait une copie et que `=` fait une référence
+        make_array size : 10, value = my_ref
+
+    # la réassignation pourrait utiliser `=`
+        a : 10 # déclaration d'une nouvelle variable
+        
+
+    # Cependant, ça fait de l'incohérence avec les arguments non nommés 
+        make_array 10, v
+
+
+# ===================================================================================================================================================
+# Pour spécifier à quel argument on fait référence
+    # `=` permet de donner un argument en particulier, comme en python
+        make_array size = 10, value = "..."
+        a := Vec[ String, size = 1 ] ...
+
+    # Dans un block, `=` fait de la réassignation
+        if cond 
+            a = 10
+
+    # `:` sert à donner un filtre. Ça peut être utilisé en conjonction avec `=`
+        def f size : PI32 = 10
+
+    # `:` et `=` peuvent être utilisé dans les blocks pour de nouvelles variables.
+        a := 10 # nouvelle variable, fait une copie
+        a : PI32 = 10 # nouvelle variable, fait une copie avec un filtre
+
+    # Rq: dans les classes, on pourra utiliser la même notation, mais on aimerait être capables d'appeler les constructeurs avec plusieurs arguments
+        # On pourrait utiliser {} dans ce but
+            a : Complex = { 10, 20 }
+        # Mais bon, ça ne sert à rien dans le blocks puisqu'on peut écrire directement
+            a := Complex 10, 20
+        # Par contre, ça servirait pour le retour de fonction
+            def f a: PI32 -> Complex # on spécifie le type attendu
+                { 1, 2 } # on dit comment le construire
+        # Ça pourrait servir pour donner des arguments typés
+            def f a: Complex
+                ...
+            f a = { 1, 2 }
+        # Question: est-ce que le 
+
+    # Pb de cohérence: `=` sert à réassigner dans les blocks et à déclarer dans les définitions (en donnant une valeur par défaut)
+        def f a = 50 # valeur 
+        v = 10 # nouvelle variable, fait une copie avec un filtre
+
+    # Une solution derait de prendre un autre opérateur pour la réassignation.
+        a <- 50 # ne marche pas, sauf si on interdit que les opérateurs puissent être collés, `a <- 50` devient `a < -50`
+                # Rq: ça pourrait être utilisé pour des canaux comme en go
+                # Rq: pour les canaux comme en go on aimerait aussi envoyer, mais -> seri
+        a =< 50 # 
+        a << 50 # pourrait marcher, pas facile de faire le lien
+        a ·= 50 # paraît cool mais utilise un caractère spécial
+        a <~ 50 # 
+
+        a <: 50 # 
+        a •= 50 # paraît cool mais utilise un caractère spécial
+        a ←  50 # alt-y. Très cool mais utilise un caractère spécial
+        a =: 50 # crée de la confusion avec : qui est utilisé pour les filtres / types
+        a -: 50 # 
+        a :: 50 # 
+        a :< 50 # frowney
+        a <= 50 # ne marche pas à cause du inférieur ou égal, qu'on aurait du mal à éviter
+        a ~= 50 # 
+        # A priori, dans les codes les plus courants, 
+
+    # Pour faire des références, 
+
+# Autre approche, `:` sert à donner des valeurs, `=` sert à réassigner, `%` sert à donner des types ou des filtres
+    # Pour les déclarations
+        def f a ^ PI32 : 10 # ça ressemble à un `<` tourné...
+        def f a % PI32 : 10 # cohérence avec module
+        def f a | PI32 : 10 # `|` est souvent utilisé pour les filtres
+        def f a & PI32 : 10
+        def f a @ PI32 : 10
+    # Pour les appels
+        g a : 10
+
+# Ou, `:` sert à donner des types, `` sert à donner des valeurs, `=` sert à réassigner
+    # Pour les déclarations
+        def f a : PI32 | 10 # `|` est vu comme un "ou"
+        def f a : PI32 ^ 10 # ça ressemble à un `<` tourné...
+        def f a : PI32 % 10 # cohérence avec module
+        def f a : PI32 & 10
+        def f a : PI32 @ 10
+        def f a : PI32 ? 10
+    # Pour les appels
+        g a ? 10
+
+# Prop: Aggregate fonctionne comme une classe
+
+# ===================================================================================================================================================
+# Les qualificateurs arrivent avant des declarations et ne prennent pas d'arguments
+    # Ça s'applique à ce qui vient après
+        static export
+        def f a, mut b when a < b
+            mut c := 10
+        
+    # L'utilisateur·rice pourra déclarer des qualificateurs
+        qualifier my_static := import "..." 
+
+    # On pourra utiliser les qualifiers sur les noms 
+        def static export f a...
+
+# ===================================================================================================================================================
+# Pour declarer une nouvelle variable dans un block
+    # `:=` crée un nouvelle valeur (i.e. pas une réf)
+        a := 10
+
+    # `&=` fait une référence (& tout seul permet de récupérer un pointeur)
+        b &= a
+
+    # `` permet de déclarer un
+        b @= a
+
+
+
+
+# Pour déclarer un argument ou un attribut
+    # `::` permet de spécifier le type attendu
+        def f( a :: String )
+            ...
+
+        class String
+            data :: Ptr[ Char ]
+            size :: PI32
+
+    # `??` permet de donner une valeur par défaut
+        def f( a :? "abc" )
+            ...
+
+        class String
+            data :? nullptr
+            size :? 0
+
+    # on peut enchainer `::` et `:?`
+        def f( a :: String :? "abc" )
+            ...
+
+        class String
+            data :: Ptr[ Char ] :? nullptr
+            size :? 0
+
+    # Pb: on voudrait donner les arguments de ctor pour les attributs
+
+
+# ===================================================================================================================================================
+#~
+    Le point de départ, c'est qu'on voudrait pouvoir mixer des instructions et des déclarations de variable, notamment dans les classes
+
+    Le : ne pose pas vraiment de problème (ça pourrait servir pour changer le comportement des class, def, etc... mais bon)
+
+    Par contre, le `=`, ça craint : il y a confusion
+
+    Prop: dans les classes, on autorise uniquement les fonctions qui créent des variables.
+~#
+    class A
+        # variables intermédiaires utilisées pour la construction
+        zod := ...
+
+        # variables statiques, accessibles depuis l'extérieur
+        static val := ...
+
+        def smurf
+            ...
+
+        # attributs
+        a : PI32
+        b = 10
+
+# À l'inverse, on pourrait imaginer que tout fonctionne sur le modèle du scope. Ça nous obligera à mettre du :. pour déclarer les arguments
+    class A
+        # attribut dynamique, défini par valeur par défaut, avec ou sans ref
+        zod := 17
+        zod &= smurf # marche aussi avec les références
+
+        # attribut dynamique, défini par un type exact
+        zod :: PI32
+
+        # attribut dynamique, défini par un filtre
+        zod : PI32
+        zod : PI32 || PI64 # on peut avoir des filtres sophistiqués
+
+        # attribut dynamique, défini par type ou filtre, avec arguments de construction
+        zod :: MyComplexClass, 17, 65
+
+        # attribut dynamique, défini par type ou filtre, avec valeur par défaut, pas forcément du type proposé
+        # (on pourra par exemple proposer un type + précis)
+        zod :| MyParentClass, my_instance
+
+        # variable statique
+        static val := ...
+
+        # du coup il n'y a pas d'incohérence pour les fonctions
+        def smurf
+            ...
+
+
+
+
+
+    # L'approche avec ces scopes, c'est d'exécuter le contenu à chaque appel ou instance
+    # Pour les classes, ça veut dire qu'il faudra exécuter en bac à sable pour pouvoir trouver la taille si on ne l'a pas déjà, et exécuter "pour de vrai" dans la bonne zone mémoire
+
+    # pour les fonctions
+    def f a :: Any, b :: Any, c := 57, d :: PI32 |= 67
+        ...
+
+    def f a : Any, b : Any, c : 57, d : PI32 = 67
+        ...
+
+
+# Pb: quand on spécifie la valeur par défaut pour les arguments de fonction, on peut vouloir une référence ou une copie
+    # Une première solution serait d'utiliser := et &= comme dans les blocks
+        def f a :: PI32, b := 10, c &= my_var
+
+
+# Une autre approche pour les variable pourrait être de passer par des fonctions
+    # c'est ce qu'on a déjà pour les def et les classes
+        def f(), ... 
+    # On peut faire la même chose avec les variables... 
+    # Ça a du sens d'y aller vu qu'on a envie de qualifier les variables par exemple si elles sont const
+    #   Cela dit, on aura aussi envie de mettre plusieurs qualificateurs, ce qui nuira à l'alignement
+        export mut a = 0
+    # Pour les variables, on va se retrouver avec un caractère à insérer pour séparer la variable 
+        # On a naturellement envie de proposer des `,`, sauf si on veut préciser plusieurs variables
+            mut a, 0
+            cst b, 0
+        # L'approche pourrait être de suivre la syntaxe des arguments 
+            mut a = 0, b: PI32 = 17
+
+
+
+

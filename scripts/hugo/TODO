@@ -1,0 +1,205 @@
+Value
+=====
+
+L'idée, c'est d'avoir une représentation orientée calcul avec simplifications.
+
+Est-ce qu'on pourrait faire la même chose avec des instructions ? L'intérêt serait d'éviter les graphs en double.
+
+1ère remarque: les instructions suivent les ressources.
+
+Prop: Rc est géré par un pool capable de repérer les cycles. On peut gérer des listes circulaires pour connaître les objets actifs potentiellement autoréférençants.
+
+Est-ce que Ref est un objet C++ standard ou une instruction ?
+  On pourrait avoir Inst_Ref qui peut pointer sur un output donnant l'état des transformations. C'est un moyen d'obtenir un pointeur sur une ressource.
+
+  Attention: il ne faut peut être pas utiliser input qui induira une dépendance à la dernière transformation
+
+Prochaines étapes:
+* opérations avec Ref
+  * set_expr
+* opérations avec Ptr et malloc
+  * set_expr
+
+* Module
+    exports :: Vec[ Pair[ String, Variable ] ]
+    path    :: String
+
+    On pourrait faire Inst_Module qui serait capable de produire les données pour des exports et un path donné
+    On pourrait même faire un ct_cast pour les ref d'un type donné pour short paths sur le contenu
+
+    Cependant, Vec étant dynamique, il faudrait produire une zone en mémoire. On pourrait produire cette zone comme un deuxième output de cette instruction, mais si on fait ça, on va produire une référence croisé.
+
+    Autre prop: on construit en plus une instruction capable de construire un vecteur
+
+    Ça paraît difficile de faire un Inst_Vec générique
+
+    Un Inst_VecString paraît envisageable pour des `StringPointed` (un pointeur sur size, rese et data qui se suivent) qui viendraient de la mémoire constante.
+
+    Pour Inst_VecVariable, on pourrait avoir des ref qui viennent de slots.
+
+    Pb: il faudrait normalement fonctionner avec des allocations. Inst_Module( Inst_StringPtr( "path" ), Inst_Ptr( Inst_Malloc( 2, ref: ... ) ) )
+
+    Pour les allocs, ça serait plus pratique si ça générait des objets sur lesquels faire des Inst_Ptr
+
+    Éventuellement, si on ne sait pas sur quoi pointe un pointeur, on pourra faire des instruction Inst_PotentialMod avec les dépendances qui vont bien.
+
+    Pb: si on fait alloc, il faut faire free, mais pour les opérations, on n'est pas intéressés par le résultat du free qui va passer à la trappe.
+
+    Prop 1: les alloc modifient le système. Si le code n'utilise pas de dep de free, on pourra virer alloc et free.
+
+    Question: comment savoir où en est un pointeur ?
+      => lorsqu'on déréférence, on fait un variable sans cpt_use. Ref_type, c'est Ptr[ ... ]. Ref, c'est l'Inst_Ptr qui pointe sur la dernière modif (avec potentiellement des InstDep)
+          Inst_Module( Inst_StringPtr( "path" ), Inst_Malloc( 2, ref: ... ) )
+
+      Comment 
+
+* def
+    call_function :: PI32
+    arg_scope     :: Vec[ Variable ]
+    decl          :: String
+    ast           :: Ptr[ Ast ]
+  * 
+
+Pb: comment faire un deref sans le type ? Le problème est de connaître la longueur.
+
+Une solution serait de ne pas transmettre la longueur.
+
+
+Prop pour les variable pas encore définies: on fait un Type_RefForFutureDef avec de la place pour une Ref + un cpt_use
+  Pb: on ne connait pas encore le type de la variable
+  Prop: on met le type comme attribut. Pour l'instant, on pourra mettre le pointeur de l'hôte.
+
+
+Quand on fait une référence, on copie les pointeurs. Il semble donc obligatoire que RefOnFutureRef soit une ref vers une ref.
+
+
+De façon générique, Def doit sortir un PrepCall_Def[ ... ] qui hérite de PrepCall qui dit
+* si c'est ok
+* la pertinence
+* comment faire un exec
+* comment vider les ref si on ne fait pas d'exec (éventuellement, ça peut passer par de simples destroys)
+
+
+Allocator pourrait être de n'importe quel type. Il paraît obligatoire de le définir comme une variable.
+  En principe, la fonction appelée devrait contenir l'arg_scope de class, notamment pour être capables de récupérer les valeurs par défaut
+
+  class A[ T, V = 17 ]
+    def allocator pool, class_obj, template_args, construct_args
+      # sans class_obj, on n'a pas accès à T, V ou aux fonctions pour trouver les valeurs par défaut
+      # Du coup, on devrait pouvoir définir un allocator par défaut
+
+
+Est-ce qu'on pourrait gérer les Ref avec move_type, move_expr, copy_type, copy_expr ?
+  => ça serait bien d'avoir des shortcuts pour la vitesse d'exécution (par ex, move_expr va modifier l'ancienne Ref)
+  => prop: Variable ne modifiera jamais le pointeur. Si on utilise une référence stockée dans une structure, il faut une RefFrom qui désigne l'objet d'origine, l'offset, ...
+
+Pourquoi mettre `Variable &&var` et `const Ptr &ptr` comme arg ?
+  Prop : ça sert à dire qui appartient à quoi
+
+Rq: si on veut optimiser, ça pourrait être bien d'avoir un flag disant si c'est owned ou non pour éviter de manipuler les cpt_use si c'est inutile
+  Oor<Variable> ? 
+
+Prop: que Variable contienne un flag ref. On ne fait les inc_ref que quand on copie les ref dans des objet (sachant qu'on peut aussi les mover).
+
+L'idée, c'est qu'on ne stocke pas les variables. C'est juste un intermédiaire pour stocker un pointeur et dire si on a l'owning
+  => quand des variables perdurent, il faut faire attention à ce qu'il y ait bien owned
+  Prop: OwnedVariable
+
+
+Rq: on voudrait appeler destroy sur les ptr stockés dans variable mais destroy doit pouvoir modifier le contenu... En principe, on doit passer une Ref à destroy.
+  Prop 1: on passe par destroy mais on vérifie que destroy ne modifie pas l'expr
+  Prop 2: on passe par une autre fonction, par exemple destroy_ptr qui ne renvoie rien.
+
+Est-ce que ça vaut vraiment le coup de faire `move_ref` ? Oui, pour créer des expr, mais pas pour RefVariable 
+
+
+Prop: ref_destroy et ref_copy s'engagent à ne pas modifier les pointeurs (on peut modifier les valeurs derrière les pointeurs)
+
+  Toutes les autres versions (deref_) fonctionnent avec des RefVariable qui donnent le ptr avec info sur owning
+
+Prop: deref_destroy => appel générique de destroy, fonctionne sur variable
+
+On aurait envie de mettre `RefVariable` dès qu'on peut aller vers des fonctions. Mais ça peut toujours être fait a posteriori
+
+L'intérêt, c'est plutôt de gérer l'owning... 
+
+Pb: à ce moment là, il faut passer les *pointeurs* comme argument des fonctions sur les types
+  => on applique sur le type *pointé* mais on passe le pointeur comme argument
+  => dans la fonction on fait les deref si nécessaire
+
+
+Rq: si on donne off dans RefVariable, il faut aussi donner le type (le pointeur ne suffisant plus pour trouver le type)
+  Pb: on ne peut plus faire de remplacement de type comme avec RefOnFutureRef
+  La solution pourrait être de passer par un proxy ou par un proxy_type
+    Le proxy
+
+Prios:
+* info
+  on pourrait imaginer faire appel à des fonctions C++. À terme, on aura sans doute intérêt à tout faire en ppw, mais ça peut être un bon exercice
+
+  Comment faire appel à des fonctions C++ ???
+
+  => l'idéal serait de passer par les includes: après un import, on aurait accès par exemple à std::cout 
+  De façon intermédiaire, on pourrait plus simplement faire une instruction print générique à appeler depuis les méthodes
+
+
+* proxys
+    => on aimerait pouvoir faire plus que juste get et set, notamment pour les self_ops
+* paramètres templates
+* while/for avec break, ...
+
+Fonctionnement de info:
+  on pourrait imaginer une fonction ppw qui affiche recursivement le contenu, avec indentation, etc...
+  Ça pourrait être sous forme de visiteur:
+    class PI64
+      def repr os 
+        __repr_gen__ self, os 
+
+    class Printer 
+      def 
+pc
+    def print obj 
+      os := Printer()
+      os << obj 
+
+
+Multidef
+========
+
+Plusieurs questions:
+* comment dire à quel variable on fait référence ?
+* comment donner les noms des arguments ?
+* pourra-t-on ajouter des définitions ailleurs qu'en local ?
+  * le cas échéant, pourra-t-on donner des limites ?
+* qu'est-ce qu'on met dans `mdef` ?
+  * on pourrait imaginer donner un patron des arguments, par exemple pour forcer un type
+  * ou une première version... mais ça prêterait à confusion
+
+class Smurf
+    mdef pout
+        allow_glob_sdef: true
+
+    sdef pout( a, b )
+    
+sdef (Smurf.pout)( a, b )
+sdef Smurf.pout a, b
+
+Il semble qu'on pourrait faire un sdef sans changer les règles de précédance. Par contre, il faudrait un Arg spécial ou avec un flag pour dire que le nom est un node
+
+
+Pb avec les lambda
+==================
+  Dans
+    a =>
+      pouet
+  
+
+
+
+
+
+
+
+
+
+

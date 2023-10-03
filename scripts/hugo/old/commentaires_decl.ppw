@@ -1,0 +1,281 @@
+# * Peut-on avoir plusieurs fonctions au sein d'une déclaration ?
+    [ f( a, b ), g( c, d ) ] := smurf...
+    # Bof: on ne voit pas comment dire quelle partie prend a et b dans les arguments, quelle partie prend c et d.
+
+# * Peut-on avoir une destructuration dans le nom d'une fonction ?   
+    def [ f, g ]( a, b ) ...
+    # Pourquoi pas: on pourrait séparer le résultat final pour avoir ce qui correspond à f, etc...
+
+# * Comment décrire des lambda avec pertinence, condition, etc... ?
+    # 1er cas d'utilisation
+        switch smurf
+            a: PI32 when a > 0 => 10
+            lambda_defini_ailleurs
+            mes_lambdas...
+            $valeur => ... #
+            50 => 11
+
+    # Dans ce cas, on ne souhaite pas manipuler de pertinence. Par contre, les conditions, ça serait cool.
+
+        # Pour les valeurs connues, ça peut passer sauf si on veut retrouver des valeurs définies ailleurs. Ça passera avec "" et les chiffres. Sinon, on devient limités à 
+            a when a == smurf => ... ou
+            _ == smurf => ... ou
+
+        # L'idée de base, c'est que le bloc d'argument doit contenir une méthode qui renvoie ok + pertinence, avec un contexte pour l'exécution. Ça peut être fait avec n'importe quel type d'objet... le problème vient de la syntaxe, qui est analysée différemment quand on traite des arguments que quand on traite du reste.
+
+        # Rq: pour les lambda, on pourrait n'utiliser que la partie argument de decl.
+
+        # Mais ça veut dire qu'il faut pouvoir analyser les valeurs de la même façon dans les lambdas et dans les args des defs
+            def f( a: Value[ 50 ] )
+
+    # 2ème cas d'utilisation : pour créer une multidef, ou y ajouter des éléments
+        mdef operator -
+            z :: PI32 => -z
+
+            
+# * comment gérer les opérateur when et pertinence ?
+    # Prop 1 : On pourrait être tenté de faire un opérateur avec prio > `,`. Cependant, ça obligera à ajouter des parenthèses ou des `,`
+        def f a when a == 10
+        def f( a, b ) when a == 10
+        def f a, b, when a == 10
+    # Prop 2 : l'idée de chercher un `def`, un `in`, (passant à travers les `,`)... paraît cool, mais ça ne marchera pas avec les lambda
+        a when a == 1 => smurf
+    # Prop 3 : 
+        a => when: a >= 0, smurf
+        lambda a when a >= 0, smurf
+        lambda (), smurf
+        func a when a >= 0, smurf
+
+    # Prop 4 : comme paramètre des arguments. Ça a l'air cool, mais ça veut dire qu'il faut décrire les conditions sur les arguments avec autre chose que `:`
+        def f a, condition: a == 10, pertinence: 5
+        ( a, condition: a >= 0 ) => smurf
+        
+        def f( a, condition: a == 10, pertinence: 5 )
+
+        def f a :: PI32
+        def f a := 50
+        def f a \ PI32
+        def f a / PI32
+        ( a, condition: a >= 0 ) => smurf
+
+        # L'avantage, c'est que ça transmet une certaine homogénéité avec la définition d'attributs.
+
+        # Mais du coup, qu'est-ce qu'on fait de `:=` dans les arguments de fonction ? `def f a := 50, b :: PI32`. Ça pourait être un test d'égalité.
+
+    # Est-ce que les arguments doivent être pré-parsés ou bien on suit le schéma général de AstArg ?
+    #   => a priori, on ne peut pas prendre AstArg car il va considérer 
+
+# * Quels sont le différences entre `()`, `[]` et `{}` dans les déclarations ? Par ex dans `def f[ ... ]( ... ){ ... }`
+    # Prop 1 : ça décrit des façons différentes d'analyser les arguments
+    #     => dans la destructuration, `[]` se base par défaut sur l'ordre, `{}` se base par défaut sur les noms
+    #         Par exemple, par défaut, `[]` n'autoriserait pas les arguments nommés,`{}` n'autoriserait que les arguments nommés
+    #     On pourrait imaginer que les arguments soient considérés comme un objet à destructurer. Ou plutôt un `std.ArgList` à destructurer, les objets pouvant être considérés comme des `std.ArgList`
+
+    #     Attention: `[]` et `{}` pourraient avoir des sens différents pour les appels. Par exemple `[]` pourrait servir à décrire les paramètres de classe. Par ailleurs, `tableau[ index ]` doit persister... mais bon, 
+
+    #     Si non collé à un nom, `{}` sert à décrire des maps, `[]` doit permettre de définir des listes. Ça serait bien de rester sur des principes similaires pour les appels.
+
+    # Prop 2 : ça sert à désigner différents types d'arguments. Lors d'un appel, on récupère les paramètres (`[]`), les arguments (`()`) et les caractéristiques d'appel (`{}`)
+        # Pour les classes, `[]` pour donner les arguments templates, `()` pour instancier.
+        # Pour les multidefs, `{}` pourrait servir à sélectionner par exemple en fonction d'une pertinence max. Pour les defs à forcer un inline, etc...
+
+        # Dans ces conditions, que devienne les destructurations ?
+            for [ a, b ] in ...
+            for { a, b } in ...
+            for ( a, b ) in ...
+
+#         En gros, si `()`, `[]` ou `{}` est
+#             * collé  => ça sert aux appels et ça décrit le type d'argument
+#             * séparé => on décrit un std.ArgList en disant si un arg est par défaut positionnal ou pas. Pb: qu'est-ce que fait `()` tout seul ?
+
+#         Ce qui est frustrant, c'est qu'avec les lambdas, on aimerait destructurer comme avec `:=` ou `for`, mais pour être cohérent, il faudrait les gérer comme les arguments d'une fonction
+#             [ a, b ] => ... a et b seront les paramètres template
+#             [ a, b ]( c, d ) => ...
+
+#         Une solution serait de considérer la destructuration si elle apparaît dans des parenthèses.
+#             ( { a, b } ) => ... a et b seront la destructuration du premier argument
+
+#     Rq: si `()` sert à définir un `std.ArgList`, qu'est-ce que va donner l'expression ( a + 5 ) * 3 ?
+#         Une solution serait de ne pas utiliser les `()` pour les appels.
+#             * `()` ne servirait qu'à agglomérer les expressions. On pourrait interdire `f(...)`
+#             * `[]` servirait à donner les arguments pour les appels. Collé => liste d'arguments pour un appel. Séparé => création d'une liste
+#             * `{}` servirait à donner les paramètres pour les appels. Collé => liste d'arguments pour un appel en utilisant les noms. Séparé => création d'une map
+#                 `Vec{ PI32 }[ ... ]`
+#         Pb: ça sera un gros frein à l'adoption            
+#             Autre types de parenthèses possibles
+#                 * (@  @)
+#                 * (*  *)
+
+# * arguments avec valeur par défaut. 
+    # Rq 1: on pourrait avoir les mêmes besoins dans les classes (spécifier le type et une valeur par défaut)
+    # Rq 2: on pourrait avoir envie d'exécuter du code y compris dans la déclaration des arguments d'une fonction
+    # Prop 1: un filtre qui donne une valeur
+    #     `def f a :: any or 10` => pas très compact
+    # Prop 2: 
+    #     `def f a := 10, b :: PI32 || 5` =>
+    # Prop 3: des opérateurs spéciaux pour les déclaration, `:=` et autres servant à l'exécution. $%?:~|^@&.
+        class A
+            a @: PI32
+            b @= 50
+
+        class A
+            a .: PI32
+            b .= 50
+
+        class A
+            a %: PI32
+            b %= 50
+
+        class A          def f a $: PI32, b $= 50, c $< PI32 $= 50
+            a $: PI32
+            b $= 50
+
+        class A          def f a : PI32, b = 50, c < PI32 = 50
+            a ^: PI32
+            b ^= 50
+
+        class A
+            a &: PI32
+            b &= 50
+
+        class A
+            a =< PI32
+            b =: 50
+
+        class A          def f a _: PI32, b _= 50
+            a _: PI32
+            b _= 50
+
+        class A          def f a :_ PI32, b =_ 50
+            a :_ PI32
+            b =_ 50
+
+        class A          def f a :? PI32, b =? 50
+            a :? PI32
+            b =? 50
+
+        class A          def f a *: PI32, b *= 50, c *< PI32 *= 50
+            a *: PI32
+            b *= 50
+
+        class A          def $f $a : PI32, $b = 50, $c : PI32 = 50
+            a *: PI32
+            b *= 50
+
+# Si on assume de parser différemment les scopes de déclaration des scopes de définition, on peut très bien utiliser `:` et pourquoi pas `=`
+    class A              
+        def f a : PI32, b = 10, c : PI32 = 50
+            a : cdsh ??
+        q : PI32 = 50
+        a : PI32
+        b = 50
+
+        s := 17 # argument statique
+
+# À ce moment là, il faudrait d'autres opérateurs pour définir les paramètres de fonction ou de classe
+    def f a : PI32, $virtual, $pertinence: 50           ( a : PI32, $virtual, $pertinence 50 ) => 67
+    def f a : PI32, %virtual, %pertinence: 50           ( a : PI32, %virtual, %pertinence 50 ) => 67          
+    def f a : PI32, @virtual, @pertinence: 50           ( a : PI32, @virtual, @pertinence 50 ) => 67
+    def f a : PI32 { virtual, pertinence[ 50 ] }        a : PI32 { virtual, pertinence 50 }=> 67
+            
+    def print a, $if( a > 50 ), $pertinence( 10 )
+    print := ( a, $if( a > 50 ), $pertinence( 10 ) ) => smurfzf
+
+# Autre prop: pour que ça fonctionne avec lambda, on bloque avec les ().
+    def f a = 5 $if a > 5 $pertinence( 50 ), cds
+    ( a : PI32 $if a > 5 $pertinence 50 ) => cds
+
+    # => ça a l'air cool, mais ça veut dire que ça sera compté comme un argument. Pourquoi pas, mais il faudrait assurer la cohérence avec les defs.
+    # Une solution serait de faire un type d'argument spécial
+    #    * ou bien on préfixe les noms, mais alors il n'y a pas de cohérence avec les arguments spécifiés avec `:`
+    #    * ou bien on prend un caractère spécial qui remplie le même rôle que `:`. À ce moment là, les qualificateur style virtual, final, override, etc... vont devoir prendre une valeur genre true ou false.
+
+# Genre:
+    def f a: PI32 when ...
+    for a: PI32 in lst when a > 0, print a
+    lst.for_each a: PI32 => print a
+
+    # Question: que deviennent ces "qualificateurs" dans les arguments `[]` et `()` ? Pour les classes, c'est assez clair... en gros, ça dépendra du style de callable.
+    # Question: que fait-on pour les `for` ?
+    # Remarque: on pourrait aussi dire que `when` `pertinence`, etc... n'ont rien à faire dans les lambda. L'idée serait d'utiliser d'autres types de construction pour les `switchs`, les `mdefs`, ...
+
+
+# Prop: on cherche une syntaxe aditionnelle pour les switchs et mdefs
+
+# Ça serait mieux si on pouvait se contenter d'avoir when, override, etc... qui travaillent comme des opérateurs simples
+# Dans ce cas, on est forcés d'ajouter des parenthèses ou de jouer avec les `,`
+# Rq: on pourrait aussi avoir des when sur les arguments d'une fonction... mais ça nbe marchera par sur override ou pertinence
+    def f( a = 10 ) when a > 5 override
+        lst.for_each a : PI32 => smourf a
+        for a : PI32 in lst when a > 5, smourf a
+    def f a = 10 when a > 5 override
+
+    def f a = 10 when a > 5 pertinence 
+
+# Prop: on garde `when` comme opérateur binaire, au même titre que `and` par exemple, et on traite pertinence, override, ... différemment. 
+    # `when` pourra fonctionner sur les arguments de sorte qu'il ne sera pas obligatoire de mettre des parenthèses pour décrire les arguments
+        def f a = 10 when a > 5, b when a > 5
+    # Pour override, export, etc... on pourrait utiliser un signe de qualification. Pb: certains qualificateurs pourraient prendre des arguments. 
+        @export @override
+        def f a = 10, b when a > 5 pertinence 5
+    # Si on les met en mot clé, c'est plus cool à lire, mais ça bloque des mots, ça fait plus de cas particuliers
+        export override
+        def f a = 10, b when a > 5 pertinence 5
+            ...
+        export const a := 5
+
+    # Une autre solution pourrait être d'en faire des fonctions... mais ça sera relou.
+        export override
+            def f a = 10, b when a > 5 pertinence 5
+    # Pour pertinence, on pourrait imaginer un opérateur binaire une tolérance : si on le trouve dans les arguments, on le reporte sur l'entité complète au moment de l'analyse
+        def f a = 10, b when a > 5 pertinence 5 # pertinence porte sur `b`, mais 
+    # Comment décrire les paramètres d'appel des fonctions, des classes, etc... ?
+        # Prop 1: avec {}
+            class A{ layout: $packed }
+                def f{ caller: $inline } a, b
+        # Prop 2: dans les arguments nommés. C'est assez "logique" comme approche vu que class ou def sont bien des fonctions.
+            class A
+                layout: $packed
+                def f a, b
+                    caller: $inline
+            # ou
+            class A, layout: $packed
+                def f( a, b ), caller: $inline
+        # Rq: si on veut faire par exemple une packed_class, il faudra transmettre la déclaration sans la parser
+            def packed_class declaration: std.Declaration, block: std.Block name
+                return std.class_maker declaration, layout: ClassLayout.packed, block
+            packed_class A
+                ...
+
+# Ça serait cool d'avoir un moyen rapide de mettre certains flags à 1 dans les appels.
+    # On pourrait utiliser `..`, à condition d'utiliser `range` pour les intervalles
+        for i in range 0, 10 # à la place de for i in range 0 .. 10
+            ...
+        class A, layout: ..packed
+    # Autre prop: `$` sert à définir des valeurs d'enum. Le système détermine quelle est l'enum en fonction du type d'argument.
+        class A
+            layout: $packed
+            transf: my_transfouille
+
+            def f( a: enum _, happy, grumfy  ), default_caller: $inline
+                ...
+        A.f $happy
+    # De façon plus générale, $ pourrait plus simplement servir à aller chercher des attributs statiques
+
+# Question de la mort : comment gérer les arguments de enum ?
+    # Prop 1: ça marche comme les arguments d'une decl ou les attributs de classe, à ceci près qu'il est possible d'avoir des arguments sans type. 
+    # Attention: pour les arguments typés, il faudrait les instanciés avec des parenthèses, mais on n'aura pas envie de le faire pour les arguments sans type.
+        enum Smurf 
+            a : PI32
+            b = 10
+            c
+
+        a := Smurf.c
+
+# Pour les enum anonymes...
+
+# Pb: comment sont considérées les defs et les := dans les scopes des classes ? 
+
+
+
+

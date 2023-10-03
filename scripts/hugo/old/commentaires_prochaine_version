@@ -1,0 +1,5 @@
+set_mark devrait être placé après avoir faire le plus de test possibles. On se retrouve à réserver de la place qui ne sert finalement à rien. Ça conduit à des variante genre variable[ M0, M1 ] variable[ M0, M2 ] uniquement à cause des variantes de réservation.
+
+
+* on devrait clarifier dans AstVariable ce qui est référence et ce qui est création, avec 2 types différents par exemple
+

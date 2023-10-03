@@ -1,0 +1,53 @@
+# On peut utiliser `:` (comme en json) pour dire quel argument on veut spécifier dans un appel de fonction
+    ma_fonction( foo: 10, bar: 50 )
+
+# Pour spécifier le type d'une variable dans une déclaration, on peut utiliser `::` (on différencie ça de l'attribution d'un argument particulier)
+    def ma_fonction( foo :: PI32, bar :: String )
+        ...
+
+    class A 
+        a :: String 
+        ...
+
+# Si on veut donner une valeur par défaut, on peut utiliser `??` après un `::` ou `:?` si pas de filtre. 
+    def ma_fonction( foo :? 10, bar :: String ?? "Smurf" )
+        ...
+
+    class A 
+        a :? "abc"
+        a :: Vec[] ?? "abc", 
+        ...
+
+    Rq: si on veut passer des arguments à un ctor, ?? va poser problème
+
+# Si on veut donner le type _et_ une valeur par défaut, on peut utiliser à la suite `::` et `:?`
+    def ma_fonction( foo :: PI32 :? 10 )
+        ...
+
+    class A 
+        a :: String :? "abc"
+        ...
+
+# Dans un block de définition (i.e. pas de déclaration), `::` et `:?` sont interdits. Pour définir des variables intermédiaires, 
+#  on peut utiliser `:=` (pour des copies) et `:~` (pour des référence)
+    for a in lst
+        b := a + 1 # définition d'une nouvelle variable avec ownership garanti 
+        c :~ b # définition d'une nouvelle référence sur une variable déjà existante
+
+# Pour créer une copie ou une référence constante, on pourra ajouter un `:`
+    a ::= f # a est une copie constante de f
+    a ::~ f # a est une référence constante vers f
+
+# `:` peut aussi être utilisé dans les blocks de définition, pour définir des arguments de la fonction qui utilise le block. Exemple:
+    def ma_fonction( a )
+        timing: 1e6 * a # donner une estimation du temps permet au compilateur de prendre des décisions, par exemple pour la parallélisation
+        caller: $inline # `$` sert à donner une valeur dans un enum dont le type est déduit par le compilateur (std.FunctionCaller dans le cas présent)
+        ... # le reste, c'est le block de la fonction
+
+    class A
+        layout: $packed
+        ...
+
+# 
+
+

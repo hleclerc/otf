@@ -1,0 +1,150 @@
+# Proposition de syntaxe n°3 : on utilise les mêmes signes en leur donnant des significations différentes selon les contextes
+
+# Dans les définitions
+    # `:` (comme en json) pour dire quel argument on veut spécifier
+        ma_fonction( foo : 10, bar : 50 )
+    # `:=` pour déclarer une nouvelle variable (avec ownership garanti)
+        b := a + 1
+    # `:~` pour déclarer une nouvelle référence
+        b :~ a
+
+# Dans les déclarations
+    # `:` (comme dans les annotation en typescript et en python) pour dire type
+        def f( a : PI32 )
+    # `=` (comme en typescript, en python ou en C++) pour donner une valeur par défaut
+        def f( a = 10 )
+    # on peut combiner les deux, dans l'ordre que l'on veut
+        def f( a : PI32 = 10 )
+    # Dans les classes, on part du même principe de base
+        class A
+            a : PI32 
+            b = 10
+    # `:=` y est interdit, sauf si c'est statique (c'est ce qui fait qu'on peut mettre des `def` dans des `class`).
+        class A
+            static v := 17
+            def f...
+
+    # pour les sums types, on peut utiliser les `Variants`
+        v := Variant[ String, PI32 ]
+
+        # on peut construire une instance a partir d'un des ctors des types présents
+            v := A "..."
+
+        # on peut utiliser les lambdas avec filtres pour s'adapter aux différents cas possibles
+            v.match
+                a when a == 17 => 17000000000
+                _: Value[ 5 ]  => 170000000
+                a: String      => v.a.size
+                _              => 19 # la valeur par défaut n'est pas obligatoire si on ne veut pas de retour
+
+        # on peut destructurer si on veut
+            v.match
+                { a, b : PI32 } => 170000000
+                [ a, b, c ]     => 17000
+                ...
+
+        # `case valeur, ...` pourrait être un moyen de créer des lambda avec when ou Kv : c'est analysé comme specified value
+            v.match
+                case( 11 .. 15 ) => 1876
+                case( 5 )        => 156
+                _                => 17
+
+    # les enum sont parsés comme des classes ou des arguments de fonction, sauf qu'on a ou bien du `:`, ou bien du `=`
+        # des valeurs entières
+            enum B{ type: PI32 }
+                a = 17
+                b = 5
+                c
+
+            x := A.b
+
+        # des types
+            enum B
+                a : String
+                b : PI32
+                c
+
+            y := A.b 17
+            z := A.c
+
+            y.match
+                v: $a => v.size
+                _: $c => y # ou case( $c ) => ...
+
+# Pour les classes anonymes, on peut utiliser aclass. Attention: il faudra parser les arguments comme des déclarations (sauf les {})
+# Rq: ça veut dire que les fonctions spéciales pourront avoir des types spéciaux d'arguments pour [] comme pour () (pour dire comment les parser).
+    b := aclass[ ... ]( ... )
+
+# Rq : si on veut spécifier les timings, il faudrait le faire après la déclaration des arguments
+    # Ça pousserait en faveur d'un ordre prescrit comme dans:
+        def f[ ... ]( a : PI32 ? 10 ){ timing : 1e6 * a, caller: $inline } pertinence 10
+    # Cependant, ça viendrait annuler les possibilités d'autocall
+        def f[ ... ]{ timing : 1e6 * a, caller: $inline } a : PI32 = 10 pertinence 10
+    # Une proposition pourrait être de faire des arguments spéciaux
+        def f a : PI32 = 10 pertinence 10
+            $timing: 
+        class A
+            $layout: $packed
+    # Autre possibilité : on garde `{}`, mais on le place juste après `[]`, et on met des lambda lorsqu'on a besoin des arguments
+        def f{ timing : a => 1e6 * a, caller: $inline } a : PI32 = 10
+
+    # Rq: on s'embête avec des timings défini par fonction, mais on pourrait les définir par block
+        for i in range std.set_ct_dist a, "", 10000
+            timing_estimation : 1e6 * a
+            ...
+
+        def f{ caller: $inline } a : PI32 = 10
+            timing_estimation : a => 1e6 * a
+
+# La question est: est-ce que c'est légitime d'utiliser des valeurs avec `:` dans les block pour donner des infos aux defs, for, etc... ? Le soucis, c'est que ça ne passera pas pour les classes.
+# Autre possibilité: c'est dans les appels qu'on ajoute cette info
+    my_func{ timing_estimation: 1e6 * a } a
+
+    # Si on veut que cette info soit toujours disponible pour une fonction, on peut ajouter un niveau d'indirection
+        def my_func size
+            def my_func_
+                ...
+            my_func_{ timing_estimation: 1e6 * size }()
+
+# Rq: ça pourrait être cool de mettre les annotations sur un autre plan, par exemple avec d'autres couleurs, pour les séparer visuellement des algos
+# Prop: on gère les annotations comme les qualificateurs (static, ...). Les qualificateurs sont précédés par un caractère spécial
+# Caractères possibles
+    # % => c'est cool, mais on va devoir renoncer au modulo. On a déjà renoncé à &.
+    # $
+    # ^
+    # ¨
+    # £
+    # µ
+    # !
+    # §
+    # \\
+    # ?
+    # °
+    # @
+    # |
+    # ~
+    # %%
+    # $$
+    %timing( ... )
+    A /= B
+# Rq: l'auto call ne marchera pas. On va estimer que les tokens vont qualifier les arguments. Prop: on force les parenthèses
+    %timing[ ... ]
+    
+# On pourrait être tentés de mettre tous les qualificateurs avec un % devant... mais la proposition, c'est que les % ne changent pas la sémantique, 
+# c'est juste pour de infos d'optimisation
+
+
+Pour parser les arguments d une fonction, on pourrait partir de la déclaration, mais normalement, on parse les arguments dans l ordre d apparition
+    def f a: Decl, b: ...
+        ...
+    f b: 47, 8
+
+Une idée pourrait être de laisser les args comme ils se présentent.
+
+Autre proposition: pour simplifier, on ne gère pas les arguments nommés dans cette première étape.
+
+
+
+
+
+

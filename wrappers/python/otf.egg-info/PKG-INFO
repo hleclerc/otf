@@ -1,0 +1,15 @@
+Metadata-Version: 2.1
+Name: otf
+Version: 0.1.1
+Summary: Semi-discrete optimal transport
+Home-page: https://github.com/sd-ot/otf
+Author: Hugo Leclerc
+Author-email: hugal.leclerc@gmail.com
+Classifier: Programming Language :: Python :: 3
+Classifier: License :: OSI Approved :: MIT License
+Classifier: Operating System :: OS Independent
+Description-Content-Type: text/markdown
+
+
+        Optimal transport for the masses...
+    
