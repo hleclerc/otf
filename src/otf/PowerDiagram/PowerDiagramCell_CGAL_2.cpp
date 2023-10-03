@@ -87,7 +87,7 @@ void PowerDiagramCell_CGAL_2::display( VtkOutput &vo, TF *offset ) {
     Vec<VtkOutput::Pt> pts;
     Vec<VtkOutput::TF> convex_function;
     for_each_edge_point( [&]( const Pt &pt ) {
-        convex_function << sp( pt, v->point().point() ) + ( weight - n2( v->point().point() ) ) / 2;
+        convex_function << sp( pt, v->point().point() ) - ( n2( v->point().point() ) - weight ) / 2;
         pts << VtkOutput::Pt{ pt.x(), pt.y() };
     } );
     vo.add_polygon( pts, { { "convex_function", convex_function } } );

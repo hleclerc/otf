@@ -1,15 +1,20 @@
 #include "../../../src/otf/PowerDiagram/PowerDiagramFactory_CGAL.h"
 #include "../../../src/otf/support/VtkOutput.h"
 
+
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
 #include <pybind11/stl.h>
+#include <eigen3/Eigen/LU>
 #include <memory>
 
 namespace {
     using TF = PowerDiagram::TF;
     using AF = pybind11::array_t<TF>;
+
+    using TM = Eigen::Matrix<TF,Eigen::Dynamic,Eigen::Dynamic>;
+    using TV = Eigen::Matrix<TF,Eigen::Dynamic,1>;
 
     struct PyPowerDiagram {
         void set_boundary_offsets( AF &that ) {
@@ -50,15 +55,74 @@ namespace {
             vo.save( filename );
         }
 
+        static AF make_AF( const Vec<Vec<TF>> &vec ) {
+            AF res;
+            if ( vec.size() ) {
+                res.resize( { vec.size(), vec[ 0 ].size() } );
+                auto buf_res = res.request();
+                auto ptr_res = (TF *)buf_res.ptr;
+
+                for( PI r = 0, i = 0; r < vec.size(); ++r )
+                    for( PI c = 0; c < vec[ 0 ].size(); ++c, ++i )
+                        ptr_res[ i ] = vec[ r ][ c ];
+            }
+            return res;
+        }
+
+        static AF make_AF( const Vec<TF> &vec ) {
+            AF res;
+            res.resize( { vec.size() } );
+            auto buf_res = res.request();
+            auto ptr_res = (TF *)buf_res.ptr;
+
+            for( PI r = 0; r < vec.size(); ++r )
+                ptr_res[ r ] = vec[ r ];
+
+            return res;
+        }
+
+        TF cf_offset( PI n ) {
+            TF n2 = 0;
+            for( PI c = 0; c < positions.size(); ++c ) {
+                TF p = positions[ c ][ n ];
+                n2 += p * p;
+            }
+
+            return ( n2 - weights[ n ] ) / 2;
+        }
+
         std::tuple<AF,AF,AF,AF> legendre_transform() {
-            //
-            pd()->for_each_point( [&]( PI num_point, const Vec<PI> &connected_items, PI num_thread ) {
-                std::cout << num_point << ":";
-                for( PI ci : connected_items )
-                    std::cout << " " << ci;
-                std::cout << "\n";
+            const PI dim = positions.size();
+
+            Vec<Vec<TF>> new_coeffs = Vec<Vec<TF>>::from_size( dim );
+            Vec<TF> new_offsets;
+            pd()->for_each_point( [&]( PI, const Vec<PI> &connected_items, PI num_thread ) {
+                if ( connected_items.size() != dim + 1 ) {
+                    std::cout << "pocsute" << std::endl;
+                    return;
+                }
+                TM M( dim + 1, dim + 1 );
+                TV V( dim + 1 );
+                for( PI r = 0; r <= dim; ++r ) {
+                    for( PI c = 0; c < dim; ++c )
+                        M( r, c ) = positions[ c ][ connected_items[ r ] ];
+                    M( r, dim ) = -1;
+
+                    V( r ) = cf_offset( connected_items[ r ] );
+                }
+
+                Eigen::FullPivLU<TM> lu( M );
+                auto X = lu.solve( V );
+
+                for( PI r = 0; r < dim; ++r )
+                    new_coeffs[ r ] << X[ r ];
+                new_offsets << X[ dim ];
             } );
-            return {};
+
+            Vec<Vec<TF>> new_bound_coeffs = Vec<Vec<TF>>::from_size( dim );
+            Vec<TF> new_bound_offsets;
+
+            return { make_AF( new_coeffs ), make_AF( new_offsets ), make_AF( new_bound_coeffs ), make_AF( new_bound_offsets ) };
         }
 
         PowerDiagram *pd() {

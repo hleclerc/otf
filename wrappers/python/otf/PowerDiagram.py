@@ -2,21 +2,21 @@ import pybind_PowerDiagram
 import numpy as np
 
 class PowerDiagram:
-    def __init__( self, positions = None, weights = None, boundary_coeffs = None, boundary_offsets = None ):
+    def __init__( self, positions = None, weights = None, boundary_dirs = None, boundary_offs = None ):
         self._cpp_inst = None
 
-        self.set_boundary_coeffs( boundary_coeffs )
+        self.set_boundary_dirs( boundary_dirs )
         self.set_positions( positions )
 
-        self.set_boundary_offsets( boundary_offsets )
+        self.set_boundary_offs( boundary_offs )
         self.set_weights( weights )
 
-    def set_boundary_offsets( self, offsets ):
+    def set_boundary_offs( self, offsets ):
         if offsets is None:
             return
         self._inst().set_boundary_offsets( np.ascontiguousarray( offsets ) )
 
-    def set_boundary_coeffs( self, coeffs ):
+    def set_boundary_dirs( self, coeffs ):
         if coeffs is None:
             return
         self._inst().set_boundary_coeffs( np.ascontiguousarray( coeffs ) )

@@ -4,33 +4,33 @@ from otf import ConvexApprox
 import numpy as np
 
 def make_approx( f_val, f_der, points, point_file = "" ):
-    offsets = []
-    coeffs = []
-    vals = []
+    dirs = []
+    offs = []
     for num_point in range( points.shape[ 1 ] ):
         point = points[ :, num_point ]
         val = f_val( point )
         der = f_der( point )
 
-        offsets.append( val - np.dot( der, point ) )
-        vals.append( list( point ) + [ val ] )
-        coeffs.append( der )
+        offs.append( np.dot( der, point ) - val )
+        dirs.append( der )
 
     na = 10
     bnd_offsets = np.ones( na )
     bnd_coeffs = [ [ np.cos( a ), np.sin( a ) ] for a in np.linspace( 0, 2 * np.pi, na, endpoint = False ) ]
 
-    if point_file:
-        vals = np.array( vals )
-        pointsToVTK( point_file,
-            np.ascontiguousarray( vals[ :, 0 ] ),
-            np.ascontiguousarray( vals[ :, 1 ] ),
-            np.ascontiguousarray( vals[ :, 2 ] )
-        )
+    # vals = []
+    # vals.append( list( point ) + [ val ] )
+    # if point_file:
+    #     vals = np.array( vals )
+    #     pointsToVTK( point_file,
+    #         np.ascontiguousarray( vals[ :, 0 ] ),
+    #         np.ascontiguousarray( vals[ :, 1 ] ),
+    #         np.ascontiguousarray( vals[ :, 2 ] )
+    #     )
 
     return ConvexApprox( 
-        np.transpose( coeffs ), 
-        offsets, 
+        np.transpose( dirs ), 
+        offs, 
         np.transpose( bnd_coeffs ),
         bnd_offsets
     )

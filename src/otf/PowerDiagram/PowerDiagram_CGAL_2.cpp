@@ -11,17 +11,34 @@ PowerDiagram_CGAL_2::PowerDiagram_CGAL_2( const TF * const *coords, const TF *we
 
     rt = { diracs.begin(), diracs.end() };
 
-    PI index = 0;
+    PI index_vertex = 0;
+    for( auto vertex = rt.finite_vertices_begin(); vertex != rt.finite_vertices_end(); ++vertex )
+        vertex->info() = index_vertex++;
+
+    for( auto vertex = rt.finite_vertices_begin(); vertex != rt.finite_vertices_end(); ++vertex ) {
+        std::cout << diracs[ vertex->info() ] << " " << vertex->point().point() << std::endl;
+        ASSERT( diracs[ vertex->info() ] == vertex->point().point() );
+    }
+
+    PI index_face = 0;
     for( auto face = rt.all_faces_begin(); face != rt.all_faces_end(); ++face )
-        face->info() = index++;
+        face->info() = index_face++;
 }
 
 void PowerDiagram_CGAL_2::for_each_point( const std::function<void( PI num_point, const Vec<PI> &connected_items, PI num_thread )> &f ) {
     Vec<PI> connected_items;
     for( auto face = rt.all_faces_begin(); face != rt.all_faces_end(); ++face ) {
+        if ( rt.is_infinite( face ) )
+            continue;
+
+        //        std::cout << "yo " << std::endl;
+        //        for( PI i = 0; i < 3; ++i )
+        //            std::cout << face->vertex( i )->info() << std::endl;
+
         connected_items.clear();
         for( PI i = 0; i < 3; ++i )
-            connected_items << face->neighbor( i )->info();
+            connected_items << face->vertex( i )->info();
+
         f( face->info(), connected_items, 0 );
     }
 }
