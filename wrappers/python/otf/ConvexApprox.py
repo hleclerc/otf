@@ -26,7 +26,8 @@ class ConvexApprox:
             self._update_weights()
 
     def _update_weights( self ):
-        self.power_diagram.set_weights( self._offsets - np.sum( self._coeffs * self._coeffs, axis = 0 ) )
+        w = self._offsets - np.sum( self._coeffs * self._coeffs, axis = 0 )
+        self.power_diagram.set_weights( w / 2 )
 
     def write_vtk( self, filename ):
         self.power_diagram.write_vtk( filename, as_convex_function = True )

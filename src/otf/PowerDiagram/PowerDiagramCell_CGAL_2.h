@@ -24,6 +24,9 @@ public:
     virtual void display            ( VtkOutput &vo, TF *offset = nullptr ) override;
     virtual TF   volume             () override;
 
+    static TF    sp                 ( const Pt &a, const Pt &b );
+    static TF    n2                 ( const Pt &p );
+
     Rt*          rt;                ///<
     Vertex       v;                 ///<
 };
