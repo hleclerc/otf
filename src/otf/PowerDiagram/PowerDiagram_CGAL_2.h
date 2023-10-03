@@ -11,10 +11,13 @@ public:
     using           Wp                 = PowerDiagramCell_CGAL_2::Wp;
     using           Pt                 = PowerDiagramCell_CGAL_2::Pt;
 
-    /**/            PowerDiagram_CGAL_2( const TF * const *coords, const TF *weights, PI nb_points );
+    /**/            PowerDiagram_CGAL_2( const TF * const *coords, const TF *weights, PI nb_points, const TF * const *boundary_coeffs, const TF *boundary_offsets, PI nb_bounds );
 
     virtual void    for_each_cell      ( const std::function<void( Cell &cell, PI num_thread )> &f ) override;
 
+    std::vector<TF> boundary_coeff_x;  ///<
+    std::vector<TF> boundary_coeff_y;  ///<
+    std::vector<TF> boundary_offsets;  ///<
     std::vector<Wp> diracs;            ///<
     Rt              rt;                ///<
 };

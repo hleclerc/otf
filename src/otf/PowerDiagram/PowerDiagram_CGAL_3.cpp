@@ -1,9 +1,7 @@
 #include "PowerDiagramCell_CGAL_3.h"
 #include "PowerDiagram_CGAL_3.h"
 
-// #include "../support/display/P.h"
-
-PowerDiagram_CGAL_3::PowerDiagram_CGAL_3( const TF * const *coords, const TF *weights, PI nb_points ) : diracs( nb_points ) {
+PowerDiagram_CGAL_3::PowerDiagram_CGAL_3( const TF * const *coords, const TF *weights, PI nb_points, const TF * const *boundary_coeffs, const TF *boundary_offsets, PI nb_bounds ) {
     for( PI i = 0; i < nb_points; ++i )
         diracs[ i ] = { { coords[ 0 ][ i ], coords[ 1 ][ i ], coords[ 2 ][ i ] }, weights[ i ] };
 
