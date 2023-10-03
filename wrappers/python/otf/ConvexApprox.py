@@ -40,6 +40,9 @@ class ConvexApprox:
     def write_vtk( self, filename ):
         self.power_diagram.write_vtk( filename, as_convex_function = True )
 
+    def legendre_transform( self ):
+        return ConvexApprox( *self.power_diagram._inst().legendre_transform() )
+
     def _update_weights( self ):
         if self.sv_offsets is None or self.sv_coeffs is None:
             return

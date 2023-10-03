@@ -8,6 +8,10 @@ PowerDiagram_CGAL_3::PowerDiagram_CGAL_3( const TF * const *coords, const TF *we
     rt = { diracs.begin(), diracs.end() };
 }
 
+void PowerDiagram_CGAL_3::for_each_point( const std::function<void( PI num_point, const Vec<PI> &connected_items, PI num_thread )> &f ) {
+    TODO;
+}
+
 void PowerDiagram_CGAL_3::for_each_cell( const std::function<void( Cell &, PI )> &f ) {
     PowerDiagramCell_CGAL_3 cell;
     cell.rt = &rt;

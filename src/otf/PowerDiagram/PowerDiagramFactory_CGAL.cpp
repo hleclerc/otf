@@ -8,4 +8,5 @@ Rc<PowerDiagram> PowerDiagramFactory_CGAL::create( PI dim, const TF * const *coo
     if ( dim == 3 )
         return new PowerDiagram_CGAL_3( coords, weights, nb_points, boundary_coeffs, boundary_offsets, nb_bounds );
     TODO;
+    return {};
 }

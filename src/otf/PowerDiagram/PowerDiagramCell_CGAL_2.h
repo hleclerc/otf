@@ -4,6 +4,8 @@
 //// nsmake lib_name gmp
 
 #include <CGAL/Exact_predicates_inexact_constructions_kernel.h>
+#include <CGAL/Triangulation_vertex_base_with_info_2.h>
+#include <CGAL/Triangulation_face_base_with_info_2.h>
 #include <CGAL/Regular_triangulation_2.h>
 #include "../support/containers/Vec.h"
 #include "PowerDiagramCell.h"
@@ -13,7 +15,11 @@
 class PowerDiagramCell_CGAL_2 : public PowerDiagramCell {
 public:
     using            Ck                 = CGAL::Exact_predicates_inexact_constructions_kernel;
-    using            Rt                 = CGAL::Regular_triangulation_2<Ck>;
+    using            MyVertex           = CGAL::Triangulation_vertex_base_with_info_2<PI,void,CGAL::Regular_triangulation_vertex_base_2<Ck>>;
+    using            MyFace             = CGAL::Triangulation_face_base_with_info_2<PI,void,CGAL::Regular_triangulation_face_base_2<Ck>>;
+    using            Tds                = CGAL::Triangulation_data_structure_2<MyVertex,MyFace>;
+
+    using            Rt                 = CGAL::Regular_triangulation_2<Ck,Tds>;
     using            Wp                 = typename Rt::Weighted_point;
     using            Pt                 = typename Rt::Point_2;
 

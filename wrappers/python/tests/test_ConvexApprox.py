@@ -16,8 +16,9 @@ def make_approx( f_val, f_der, points, point_file = "" ):
         vals.append( list( point ) + [ val ] )
         coeffs.append( der )
 
-    bnd_offsets = [ 1, 1, 1, 1 ]
-    bnd_coeffs = [ [ +1, 0 ], [ -1, 0 ], [ 0, +1 ], [ 0, -1 ] ]
+    na = 10
+    bnd_offsets = np.ones( na )
+    bnd_coeffs = [ [ np.cos( a ), np.sin( a ) ] for a in np.linspace( 0, 2 * np.pi, na, endpoint = False ) ]
 
     if point_file:
         vals = np.array( vals )
@@ -35,10 +36,13 @@ def make_approx( f_val, f_der, points, point_file = "" ):
     )
 
 ca = make_approx(
-    lambda p: 2 * p[ 0 ]**2 + p[ 1 ]**2,
-    lambda p: [ 2 * 2 * p[ 0 ], 2 * p[ 1 ] ],
-    np.random.rand( 2, 500 ) * 2 - 1,
+    lambda p: p[ 0 ]**2 + p[ 1 ]**2,
+    lambda p: [ 2 * p[ 0 ], 2 * p[ 1 ] ],
+    np.random.rand( 2, 500 ) * 3 - 1.5,
     "points"
 )
 
 ca.write_vtk( "test.vtk" )
+
+lt = ca.legendre_transform()
+lt.write_vtk( "leta.vtk" )

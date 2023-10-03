@@ -13,6 +13,7 @@ public:
 
     /**/            PowerDiagram_CGAL_3( const TF * const *coords, const TF *weights, PI nb_points, const TF * const *boundary_coeffs, const TF *boundary_offsets, PI nb_bounds );
 
+    virtual void    for_each_point     ( const std::function<void( PI num_point, const Vec<PI> &connected_items, PI num_thread )> &f ) override;
     virtual void    for_each_cell      ( const std::function<void( Cell &cell, PI num_thread )> &f ) override;
 
     std::vector<Wp> diracs;            ///<

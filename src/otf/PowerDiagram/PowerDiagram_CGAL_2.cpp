@@ -10,6 +10,20 @@ PowerDiagram_CGAL_2::PowerDiagram_CGAL_2( const TF * const *coords, const TF *we
     this->boundary_offsets = { boundary_offsets, boundary_offsets + nb_bounds };
 
     rt = { diracs.begin(), diracs.end() };
+
+    PI index = 0;
+    for( auto face = rt.all_faces_begin(); face != rt.all_faces_end(); ++face )
+        face->info() = index++;
+}
+
+void PowerDiagram_CGAL_2::for_each_point( const std::function<void( PI num_point, const Vec<PI> &connected_items, PI num_thread )> &f ) {
+    Vec<PI> connected_items;
+    for( auto face = rt.all_faces_begin(); face != rt.all_faces_end(); ++face ) {
+        connected_items.clear();
+        for( PI i = 0; i < 3; ++i )
+            connected_items << face->neighbor( i )->info();
+        f( face->info(), connected_items, 0 );
+    }
 }
 
 void PowerDiagram_CGAL_2::for_each_cell( const std::function<void( Cell &, PI )> &f ) {
