@@ -1,25 +1,19 @@
 #include "PowerDiagramCell_CGAL_2.h"
 #include "PowerDiagram_CGAL_2.h"
 
-PowerDiagram_CGAL_2::PowerDiagram_CGAL_2( const TF * const *coords, const TF *weights, PI nb_points, const TF * const *boundary_coeffs, const TF *boundary_offsets, PI nb_bounds ) : diracs( nb_points ) {
-    for( PI i = 0; i < nb_points; ++i )
-        diracs[ i ] = { { coords[ 0 ][ i ], coords[ 1 ][ i ] }, weights[ i ] };
-
+PowerDiagram_CGAL_2::PowerDiagram_CGAL_2( const TF * const *coords, const TF *weights, PI nb_points, const TF * const *boundary_coeffs, const TF *boundary_offsets, PI nb_bounds ) {
+    // boundaries
     this->boundary_coeff_x = { boundary_coeffs[ 0 ], boundary_coeffs[ 0 ] + nb_bounds };
     this->boundary_coeff_y = { boundary_coeffs[ 1 ], boundary_coeffs[ 1 ] + nb_bounds };
     this->boundary_offsets = { boundary_offsets, boundary_offsets + nb_bounds };
 
-    rt = { diracs.begin(), diracs.end() };
+    // insertion
+    Vec<std::pair<Wp,PI>> diracs = Vec<std::pair<Wp,PI>>::from_reservation( nb_points );
+    for( PI i = 0; i < nb_points; ++i )
+        diracs.push_back( Wp{ { coords[ 0 ][ i ], coords[ 1 ][ i ] }, weights[ i ] }, i );
+    rt.insert( diracs.begin(), diracs.end() );
 
-    PI index_vertex = 0;
-    for( auto vertex = rt.finite_vertices_begin(); vertex != rt.finite_vertices_end(); ++vertex )
-        vertex->info() = index_vertex++;
-
-    for( auto vertex = rt.finite_vertices_begin(); vertex != rt.finite_vertices_end(); ++vertex ) {
-        std::cout << diracs[ vertex->info() ] << " " << vertex->point().point() << std::endl;
-        ASSERT( diracs[ vertex->info() ] == vertex->point().point() );
-    }
-
+    // update info
     PI index_face = 0;
     for( auto face = rt.all_faces_begin(); face != rt.all_faces_end(); ++face )
         face->info() = index_face++;
@@ -30,10 +24,6 @@ void PowerDiagram_CGAL_2::for_each_point( const std::function<void( PI num_point
     for( auto face = rt.all_faces_begin(); face != rt.all_faces_end(); ++face ) {
         if ( rt.is_infinite( face ) )
             continue;
-
-        //        std::cout << "yo " << std::endl;
-        //        for( PI i = 0; i < 3; ++i )
-        //            std::cout << face->vertex( i )->info() << std::endl;
 
         connected_items.clear();
         for( PI i = 0; i < 3; ++i )
@@ -50,10 +40,9 @@ void PowerDiagram_CGAL_2::for_each_cell( const std::function<void( Cell &, PI )>
     cell.boundary_offsets = &boundary_offsets;
     cell.rt = &rt;
 
-    PI num_cell = 0;
     for( auto v = rt.all_vertices_begin(); v != rt.all_vertices_end(); ++v ) {
         cell.weight = v->point().weight();
-        cell.num = num_cell++;
+        cell.num = v->info();
         cell.v = v;
 
         f( cell, 0 );

@@ -21,7 +21,6 @@ public:
     std::vector<TF> boundary_coeff_x;  ///<
     std::vector<TF> boundary_coeff_y;  ///<
     std::vector<TF> boundary_offsets;  ///<
-    std::vector<Wp> diracs;            ///<
     Rt              rt;                ///<
 };
 
