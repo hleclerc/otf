@@ -2,15 +2,17 @@
 #include "../support/VtkOutput.h"
 
 void PowerDiagramCell_CGAL_2::for_each_edge_point( const std::function<void( const Pt &pt )> &f ) {
-    if ( is_infinite() )
-        return;
+    //    if ( is_infinite() )
+    //        return;
 
     // if not boundary, no need to make an intermediate representation
     if ( boundary_offsets->empty() ) {
         auto circulator = rt->incident_faces( v ), done( circulator );
         do {
-            if ( rt->is_infinite( circulator ) )
+            if ( rt->is_infinite( circulator ) ) {
+                std::cout << rt->weighted_circumcenter( circulator ) << std::endl;
                 continue;
+            }
             f( rt->weighted_circumcenter( circulator ) );
         } while( ++circulator != done );
         return;
@@ -20,8 +22,10 @@ void PowerDiagramCell_CGAL_2::for_each_edge_point( const std::function<void( con
     auto circulator = rt->incident_faces( v ), done( circulator );
     Vec<Pt> pts;
     do {
-        if ( rt->is_infinite( circulator ) )
+        if ( rt->is_infinite( circulator ) ) {
+            std::cout << rt->weighted_circumcenter( circulator ) << std::endl;
             continue;
+        }
         pts << rt->weighted_circumcenter( circulator );
     } while( ++circulator != done );
 

@@ -15,7 +15,7 @@ def make_approx( f_val, f_der, points, point_file = "" ):
         dirs.append( der )
 
     na = 10
-    bnd_offsets = np.ones( na )
+    bnd_offsets = np.ones( na ) * 1.5
     bnd_coeffs = [ [ np.cos( a ), np.sin( a ) ] for a in np.linspace( 0, 2 * np.pi, na, endpoint = False ) ]
 
     # vals = []
@@ -38,7 +38,7 @@ def make_approx( f_val, f_der, points, point_file = "" ):
 ca = make_approx(
     lambda p: p[ 0 ]**2 + p[ 1 ]**2,
     lambda p: [ 2 * p[ 0 ], 2 * p[ 1 ] ],
-    np.random.rand( 2, 500 ) * 3 - 1.5,
+    np.random.rand( 2, 500 ) * 2 - 1,
     "points"
 )
 
