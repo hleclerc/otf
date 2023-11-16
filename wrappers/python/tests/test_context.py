@@ -3,5 +3,11 @@ import sys, os
 base_dir = os.path.dirname( os.path.dirname( os.path.abspath( __file__ ) ) )
 
 sys.path.append( base_dir )
-sys.path.append( base_dir + "/build/local/lib/python3.11/dist-packages/otf-0.1.1-py3.11-linux-x86_64.egg/" )
+
+base_build = base_dir + "/build"
+for dir in os.listdir( base_build ):
+    if dir.startswith( 'temp.' ):
+        continue
+    sys.path.append( base_build + "/" + dir )
+    # print( base_build + "/" + dir )
 

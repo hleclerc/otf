@@ -1,9 +1,10 @@
 import test_context
-from evtk.hl import pointsToVTK
+
+# from evtk import pointsToVTK
 from otf import ConvexApprox
 import numpy as np
 
-def make_approx( f_val, f_der, points, point_file = "" ):
+def make_approx( f_val, f_der, points ):
     dirs = []
     offs = []
     for num_point in range( points.shape[ 1 ] ):
@@ -18,16 +19,6 @@ def make_approx( f_val, f_der, points, point_file = "" ):
     bnd_offsets = np.ones( na ) * 1.5
     bnd_coeffs = [ [ np.cos( a ), np.sin( a ) ] for a in np.linspace( 0, 2 * np.pi, na, endpoint = False ) ]
 
-    # vals = []
-    # vals.append( list( point ) + [ val ] )
-    # if point_file:
-    #     vals = np.array( vals )
-    #     pointsToVTK( point_file,
-    #         np.ascontiguousarray( vals[ :, 0 ] ),
-    #         np.ascontiguousarray( vals[ :, 1 ] ),
-    #         np.ascontiguousarray( vals[ :, 2 ] )
-    #     )
-
     return ConvexApprox( 
         np.transpose( dirs ), 
         offs, 
@@ -38,10 +29,8 @@ def make_approx( f_val, f_der, points, point_file = "" ):
 ca = make_approx(
     lambda p: p[ 0 ]**2 + p[ 1 ]**2,
     lambda p: [ 2 * p[ 0 ], 2 * p[ 1 ] ],
-    np.random.rand( 2, 500 ) * 2 - 1,
-    "points"
+    np.random.rand( 2, 500 ) * 2 - 1
 )
-
 ca.write_vtk( "test.vtk" )
 
 lt = ca.legendre_transform()

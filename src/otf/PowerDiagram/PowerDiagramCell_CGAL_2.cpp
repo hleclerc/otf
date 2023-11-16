@@ -10,7 +10,7 @@ void PowerDiagramCell_CGAL_2::for_each_edge_point( const std::function<void( con
         auto circulator = rt->incident_faces( v ), done( circulator );
         do {
             if ( rt->is_infinite( circulator ) ) {
-                std::cout << rt->weighted_circumcenter( circulator ) << std::endl;
+                // std::cout << rt->weighted_circumcenter( circulator ) << std::endl;
                 continue;
             }
             f( rt->weighted_circumcenter( circulator ) );
@@ -23,7 +23,7 @@ void PowerDiagramCell_CGAL_2::for_each_edge_point( const std::function<void( con
     Vec<Pt> pts;
     do {
         if ( rt->is_infinite( circulator ) ) {
-            std::cout << rt->weighted_circumcenter( circulator ) << std::endl;
+            // std::cout << rt->weighted_circumcenter( circulator ) << std::endl;
             continue;
         }
         pts << rt->weighted_circumcenter( circulator );
