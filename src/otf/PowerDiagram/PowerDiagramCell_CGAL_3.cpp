@@ -38,6 +38,10 @@ struct PowerDiagramCell_CGAL_3_Inserter {
     Rt *rt;
 };
 
+void PowerDiagramCell_CGAL_3::get_verts_and_faces( std::vector<double> &v, std::vector<int> &f, std::vector<double> &e ) {
+    TODO;
+}
+
 void PowerDiagramCell_CGAL_3::for_each_face( const std::function<void( const Pt *pts_data, PI pts_size )> &f ) {
     PowerDiagramCell_CGAL_3_Inserter ins{ f, {}, rt };
     rt->incident_edges( v, ins );

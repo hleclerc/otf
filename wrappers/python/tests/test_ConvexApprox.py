@@ -1,8 +1,8 @@
 import test_context
 
-# from evtk import pointsToVTK
 from otf import ConvexApprox
 import numpy as np
+# import pyvista
 
 def make_approx( f_val, f_der, points ):
     dirs = []
@@ -31,7 +31,11 @@ ca = make_approx(
     lambda p: [ 2 * p[ 0 ], 2 * p[ 1 ] ],
     np.random.rand( 2, 500 ) * 2 - 1
 )
-ca.write_vtk( "test.vtk" )
 
-lt = ca.legendre_transform()
-lt.write_vtk( "leta.vtk" )
+# pv = ca.power_diagram.as_pyvista_polydata()
+# pv.plot()
+
+# ca.write_vtk( "test.vtk" )
+
+# lt = ca.legendre_transform()
+# lt.write_vtk( "leta.vtk" )

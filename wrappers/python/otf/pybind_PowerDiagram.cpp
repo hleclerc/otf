@@ -8,6 +8,7 @@
 #include <pybind11/stl.h>
 #include <eigen3/Eigen/LU>
 #include <memory>
+#include <mutex>
 
 namespace {
     using TF = PowerDiagram::TF;
@@ -53,6 +54,18 @@ namespace {
                 cell.display( vo );
             } );
             vo.save( filename );
+        }
+
+        std::tuple<std::vector<double>,std::vector<int>,std::vector<double>> vtk_verts_and_faces( bool ) {
+            std::vector<double> v, e;
+            std::vector<int> f;
+            std::mutex m;
+            pd()->for_each_cell( [&]( PowerDiagramCell &cell, PI num_thread ) {
+                m.lock();
+                cell.get_verts_and_faces( v, f, e );
+                m.unlock();
+            } );
+            return { v, f, e };
         }
 
         static AF make_AF( const Vec<Vec<TF>> &vec ) {
@@ -165,7 +178,9 @@ PYBIND11_MODULE( pybind_PowerDiagram, m ) {
         .def( "set_positions", &PyPowerDiagram::set_positions, "" )
         .def( "set_weights", &PyPowerDiagram::set_weights, "" )
 
+        .def( "vtk_verts_and_faces", &PyPowerDiagram::vtk_verts_and_faces, pybind11::arg( "as_convex_function" ) = false, "" )
         .def( "legendre_transform", &PyPowerDiagram::legendre_transform, "" )
         .def( "write_vtk", &PyPowerDiagram::write_vtk, pybind11::arg( "filename" ), pybind11::arg( "as_convex_function" ) = false, "" )
+
     ;
 }

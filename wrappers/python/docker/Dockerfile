@@ -7,22 +7,26 @@ FROM quay.io/jupyter/base-notebook
 USER root
 RUN apt-get update \
  && apt-get install -yq \
+    libgl1-mesa-glx \
+    libxrender-dev \
+    libgl1 \
+    xvfb \
     libcgal-dev \
     git \
     g++ \
  && apt-get clean
 
-# pyind11
+# pyind11 (ipywidgets jupyter-server-proxy)
 USER ${NB_UID}
-RUN conda install -c conda-forge pybind11 pyevtk eigen && \
+RUN conda install -c conda-forge pybind11 eigen && \
     fix-permissions "${CONDA_DIR}" && \
     fix-permissions "/home/${NB_USER}"
 
 # pyind11
-# USER root
-# RUN pip install --no-cache-dir 'pyevtk' && \
-#     fix-permissions "${CONDA_DIR}" && \
-#     fix-permissions "/home/${NB_USER}"
+USER root
+RUN pip install --no-cache-dir 'pyvista[all,trame]' jupyter-server-proxy && \
+    fix-permissions "${CONDA_DIR}" && \
+    fix-permissions "/home/${NB_USER}"
 
 # git + build otf
 USER ${NB_UID}

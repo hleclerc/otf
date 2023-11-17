@@ -87,6 +87,21 @@ PowerDiagramCell_CGAL_2::TF PowerDiagramCell_CGAL_2::volume() {
     return res;
 }
 
+void PowerDiagramCell_CGAL_2::get_verts_and_faces( std::vector<double> &verts, std::vector<int> &faces, std::vector<double> &e ) {
+    auto os = verts.size();
+    for_each_edge_point( [&]( const Pt &pt ) {
+        e.push_back( sp( pt, v->point().point() ) - ( n2( v->point().point() ) - weight ) / 2 );
+
+        verts.push_back( pt.x() );
+        verts.push_back( pt.y() );
+        verts.push_back( 0 );
+    } );
+    
+    faces.push_back( ( verts.size() - os ) / 3 );
+    for( auto i = os; i < verts.size(); i += 3 )
+        faces.push_back( i / 3 );
+}
+
 void PowerDiagramCell_CGAL_2::display( VtkOutput &vo, TF *offset ) {
     Vec<VtkOutput::Pt> pts;
     Vec<VtkOutput::TF> convex_function;

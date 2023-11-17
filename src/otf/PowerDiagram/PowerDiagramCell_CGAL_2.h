@@ -26,6 +26,7 @@ public:
     using            Vertex             = Rt::Vertex_handle;
     using            Edge               = Rt::Edge;
 
+    virtual void     get_verts_and_faces( std::vector<double> &v, std::vector<int> &f, std::vector<double> &e ) override;
     virtual bool     is_infinite        () const override;
     virtual void     display            ( VtkOutput &vo, TF *offset = nullptr ) override;
     virtual TF       volume             () override;

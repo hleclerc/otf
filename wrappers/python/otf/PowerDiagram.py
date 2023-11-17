@@ -1,4 +1,4 @@
-import pybind_PowerDiagram
+# import pybind_PowerDiagram
 import numpy as np
 
 class PowerDiagram:
@@ -33,6 +33,16 @@ class PowerDiagram:
 
     def write_vtk( self, filename, as_convex_function = False ):
         self._inst().write_vtk( filename, as_convex_function )
+
+    def as_pyvista_polydata( self, as_convex_function = False ):
+        import pyvista
+
+        ( v, f, e ) = self._inst().vtk_verts_and_faces( as_convex_function )
+
+        res = pyvista.PolyData( np.reshape( v, [ -1, 3 ] ), np.array( f ) )
+        res.point_data['convex_function'] = np.array( e )
+        return res 
+
 
     def _inst( self ):
         if self._cpp_inst is None:
