@@ -30,12 +30,12 @@ class ConvexApprox:
     def set_boundary_offs( self, offs ):
         if offs is None:
             return
-        self.power_diagram.set_boundary_offs( offs )
+        self.power_diagram.set_boundary_offsets( offs )
 
     def set_boundary_dirs( self, dirs ):
         if dirs is None:
             return
-        self.power_diagram.set_boundary_dirs( dirs )
+        self.power_diagram.set_boundary_directions( dirs )
 
     def write_vtk( self, filename ):
         self.power_diagram.write_vtk( filename, as_convex_function = True )
@@ -49,3 +49,21 @@ class ConvexApprox:
             return
         w = np.sum( self.sv_dirs * self.sv_dirs, axis = 0 ) - 2 * self.sv_offs
         self.power_diagram.set_weights( w )
+
+    def make_approx_from_values_and_derivatives( sample_coords, bnd_directions, bnd_offsets, f_val, f_der ):
+        dirs = []
+        offs = []
+        for num_point in range( sample_coords.shape[ 1 ] ):
+            point = sample_coords[ :, num_point ]
+            val = f_val( point )
+            der = f_der( point )
+
+            offs.append( np.dot( der, point ) - val )
+            dirs.append( der )
+
+        return ConvexApprox( 
+            np.transpose( dirs ), 
+            offs, 
+            np.transpose( np.array( bnd_directions ) ),
+            np.array( bnd_offsets )
+        )

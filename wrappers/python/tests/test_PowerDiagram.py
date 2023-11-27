@@ -1,5 +1,4 @@
-import test_context
-from otf import PowerDiagram
+from otf_test_import import PowerDiagram
 import numpy as np
 
 nb_diracs = 10

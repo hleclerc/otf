@@ -40,7 +40,7 @@ void PowerDiagram_CGAL_2::for_each_cell( const std::function<void( Cell &, PI )>
     cell.boundary_offsets = &boundary_offsets;
     cell.rt = &rt;
 
-    for( auto v = rt.all_vertices_begin(); v != rt.all_vertices_end(); ++v ) {
+    for( auto v = rt.finite_vertices_begin(); v != rt.finite_vertices_end(); ++v ) {
         cell.weight = v->point().weight();
         cell.num = v->info();
         cell.v = v;

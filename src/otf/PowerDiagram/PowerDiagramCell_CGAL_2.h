@@ -18,12 +18,14 @@ public:
     using            MyVertex           = CGAL::Triangulation_vertex_base_with_info_2<PI,void,CGAL::Regular_triangulation_vertex_base_2<Ck>>;
     using            MyFace             = CGAL::Triangulation_face_base_with_info_2<PI,void,CGAL::Regular_triangulation_face_base_2<Ck>>;
     using            Tds                = CGAL::Triangulation_data_structure_2<MyVertex,MyFace>;
+    using            Segment            = CGAL::Segment_2<Ck>;
+    using            Ray                = CGAL::Ray_2<Ck>;
 
     using            Rt                 = CGAL::Regular_triangulation_2<Ck,Tds>;
     using            Wp                 = typename Rt::Weighted_point;
     using            Pt                 = typename Rt::Point_2;
 
-    using            Vertex             = Rt::Vertex_handle;
+    using            Vertex             = Rt::Vertex_handle; // Finite_vertex_handles
     using            Edge               = Rt::Edge;
 
     virtual void     get_verts_and_faces( std::vector<double> &v, std::vector<int> &f, std::vector<double> &e ) override;
@@ -32,6 +34,7 @@ public:
     virtual TF       volume             () override;
 
     void             for_each_edge_point( const std::function<void( const Pt &pt )> &f );
+    bool             is_inside          ( const Pt &src ) const;
     void             cut                ( Vec<Pt> &pts, Pt dir, TF off ) const;
 
     static TF        sp                 ( const Pt &a, const Pt &b );

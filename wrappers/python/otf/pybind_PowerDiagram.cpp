@@ -1,7 +1,6 @@
 #include "../../../src/otf/PowerDiagram/PowerDiagramFactory_CGAL.h"
 #include "../../../src/otf/support/VtkOutput.h"
 
-
 #include <pybind11/functional.h>
 #include <pybind11/pybind11.h>
 #include <pybind11/numpy.h>
@@ -19,16 +18,23 @@ namespace {
 
     struct PyPowerDiagram {
         void set_boundary_offsets( AF &that ) {
-            boundary_offsets = Vec<TF>::from_function( that.size(), [&]( PI i ) { return that.at( i ); } );
+            if ( that.size() == 0 )
+                boundary_offsets.clear();
+            else
+                boundary_offsets = Vec<TF>::from_function( that.size(), [&]( PI i ) { return that.at( i ); } );
 
             _pd.clear();
         }
 
         void set_boundary_coeffs( AF &that ) {
-            const PI dim = that.shape( 0 ), n = that.shape( 1 );
-            boundary_coeffs.resize( dim );
-            for( PI d = 0; d < dim; ++d )
-                boundary_coeffs[ d ] = Vec<TF>::from_function( n, [&]( PI i ) { return that.at( d, i ); } );
+            if ( that.size() == 0 )
+                boundary_offsets.clear();
+            else {
+                const PI dim = that.shape( 0 ), n = that.shape( 1 );
+                boundary_coeffs.resize( dim );
+                for( PI d = 0; d < dim; ++d )
+                    boundary_coeffs[ d ] = Vec<TF>::from_function( n, [&]( PI i ) { return that.at( d, i ); } );
+            }
 
             _pd.clear();
         }
